@@ -19,6 +19,9 @@ A Typical workflow using the maximal matching model would look like this:
 
 where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution file.
 
+
+<details><summary>Run file format</summary>
+
 Run output file format (`{run-file}`):
 - Each line encompasses all runs within the same cycle
 - Runs within a cycle are separated by TAB-characters
@@ -41,6 +44,10 @@ with `cycle-n = {A-run}\tab{B-run}...` or `cycle-n = \tab {B-run}`
 with `{X-run}=(+/-)indel1(+/-)indel2...` 
 
 ------------------------------------
+
+
+
+</details>
 
 
 The work of this repository is described in the following paper:
