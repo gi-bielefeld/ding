@@ -40,9 +40,9 @@ More formally:
 `...`
 
 
-with `cycle-n = {A-run}\tab{B-run}...` or `cycle-n = \tab {B-run}`
+with `{cycle-n}` = `{A-run}\tab{B-run}...` or `cycle-n` = `\tab {B-run}`
 
-with `{X-run}=(+/-)indel1(+/-)indel2...` 
+and `{X-run}`=`(+/-)indel1(+/-)indel2...` 
 
 ------------------------------------
 
