@@ -25,6 +25,8 @@ Run output file format (`{run-file}`):
 - If there is no A-run the line begins with a TAB
 - Runs are the concatenated string of the oriented markers to be deleted
 
+------------------------------------
+More formally:
 `{cycle-1}`
 
 
@@ -37,6 +39,8 @@ Run output file format (`{run-file}`):
 with `cycle-n = {A-run}\tab{B-run}...` or `cycle-n = \tab {B-run}`
 
 with `{X-run}=(+/-)indel1(+/-)indel2...` 
+
+------------------------------------
 
 
 The work of this repository is described in the following paper:
