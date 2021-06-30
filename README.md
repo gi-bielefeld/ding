@@ -24,7 +24,7 @@ where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format an
 <details><summary>Run file format</summary>
 
 Run output file format (`{run-file}`):
-- Each line encompasses all runs within the same cycle
+- Each line encompasses all runs within the same cycle of the decomposition
 - Runs within a cycle are separated by TAB-characters
 - If there is no A-run the line begins with a TAB
 - Runs are the concatenated string of the oriented markers to be deleted
