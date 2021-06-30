@@ -37,7 +37,7 @@ More formally:
 `{cycle-2}`
 
 
-...
+`...`
 
 
 with `cycle-n = {A-run}\tab{B-run}...` or `cycle-n = \tab {B-run}`
