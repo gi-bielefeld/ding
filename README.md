@@ -14,10 +14,10 @@ An overview of the scripts dealing directly with the DING ILP:
 
 A Typical workflow using the maximal matching model would look like this:
 1.  Generate the ILP: `./dingII.py  {unimog-file} -mm --writeilp {ilp-file}`
-2.  Apply gurobi
+2.  Use a solver to obtain a gurobi solution `{gurobi-sol}`.
 3.  Get the matching and distance (and number of indels as well as a summary of runs ("indel-blocks")): `%s/dingII_parsesol.py {unimog-file} --solgur {gurobi-sol} --matching {unimog-matching} (--numindels --runs {run-file})`
 
-where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution file.
+where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution file with objective value (e.g. `# Objective value = 12`).
 
 
 <details><summary>Run file format</summary>
