@@ -17,7 +17,23 @@ A Typical workflow using the maximal matching model would look like this:
 2.  Apply gurobi
 3.  Get the matching and distance (and number of indels as well as a summary of runs ("indel-blocks")): `%s/dingII_parsesol.py {unimog-file} --solgur {gurobi-sol} --matching {unimog-matching} (--numindels --runs {run-file})`
 
-where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution file. 
+where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution file.
+
+Run output file format (`{run-file}`):
+- Each line encompasses all runs within the same cycle
+- Runs within a cycle are separated by TAB-characters
+- If there is no A-run the line begins with a TAB
+- Runs are the concatenated string of the oriented markers to be deleted
+
+`{cycle-1}`
+`{cycle-2}`
+...
+
+
+with `cycle-n = {A-run}\tab{B-run}...` or `cycle-n = \tab {B-run}`
+
+with `{X-run}=(+/-)indel1(+/-)indel2...` 
+
 
 The work of this repository is described in the following paper:
 * Bohnenkämper L., Braga M.D.V., Doerr D., Stoye J.: Computing the Rearrangement Distance of Natural Genomes. In: Schwartz R. (eds) Proc. of RECOMB 2020. LNCS 12074, 3-18. Springer Verlag, 2020. [DOI](https://doi.org/10.1007/978-3-030-45257-5_1)
