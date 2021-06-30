@@ -51,7 +51,6 @@ and `{X-run}`=`(+/-)indel1(+/-)indel2...`
 
 </details>
 
-
 The work of this repository is described in the following paper:
 * Bohnenkämper L., Braga M.D.V., Doerr D., Stoye J.: Computing the Rearrangement Distance of Natural Genomes. In: Schwartz R. (eds) Proc. of RECOMB 2020. LNCS 12074, 3-18. Springer Verlag, 2020. [DOI](https://doi.org/10.1007/978-3-030-45257-5_1)
 
