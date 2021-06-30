@@ -11,6 +11,7 @@ An overview of the scripts dealing directly with the DING ILP:
 |  dingII.py | Generate the DING ILP or create a custom model file in order to fine tune how many genes per family are to be matched | [UniMoG file](https://bibiserv.cebitec.uni-bielefeld.de/dcj?id=dcj_manual) containing a single genome pair, (custom model file)  | [gurobi lp file](https://www.gurobi.com/documentation/9.1/refman/lp_format.html) or custom model file | python3, networkx, dingII\_util |
 | dingII\_parsesol.py | Calculate the distance and matching | UniMoG file with the original, unmatched genomes, [gurobi solution file](https://www.gurobi.com/documentation/9.1/refman/sol_format.html) containing a single solution with objective value | UniMoG file with relabeled genes according to matching | python3, networkx, dingII\_util|
 | dingII\_util.py | Provide utility functions for generation and interpretation| - | - | python3,networkx, ilp\_util\_adj |
+ilp\_util\_adj | Provide further utility functions | - | - | python3 |
 
 A Typical workflow using the maximal matching model would look like this:
 1.  Generate the ILP: `./dingII.py  {unimog-file} -mm --writeilp {ilp-file}`
