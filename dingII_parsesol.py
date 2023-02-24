@@ -146,6 +146,28 @@ def print_runs(runs, file=sys.stdout):
         cyc = canonize(cyc)
         print('\t'.join([''.join(['%s%s'%kv for kv in r[1]]) for r in cyc]), file=file)
 
+def get_min_indels(runs):
+    has_transitions = 1 if len([c for c in runs if len(c) > 1]) > 0 else 0
+    return len([c for c in runs if len(c) == 1]) + 2*has_transitions
+
+def get_max_indels(runs):
+    return sum([small_lambda(c) for c in runs])
+
+def check_num_indels(vrs,rd):
+    runs = get_runs(rd)
+    if 'min_indels' in vrs:
+        min_indels = get_min_indels(runs)
+        if min_indels == vrs['min_indels']:
+            print('Calculated minimum indels match minimum indels in the matching; id_min = %i = %i'%(min_indels, vrs['min_indels']))
+        else:
+            print('Calculated minimum indels do not match minimum indels in the matching; %i =//= %i'%(min_indels, vrs['min_indels']))
+    if 'max_indels' in vrs:
+        max_indels = get_max_indels(runs)
+        if max_indels == vrs['max_indels']:
+            print('Calculated maximum indels match maximum indels in the matching; id_max = %i = %i'%(max_indels, vrs['max_indels']))
+        else:
+            print('Calculated maximum indels do not match maximum indels in the matching; %i =//= %i'%(max_indels, vrs['max_indels']))
+
 def main():
     parser = ArgumentParser('Parse a gurobi solution into a distance and optionally give a matching')
     add_unimog_parsing_groups(parser)
@@ -154,12 +176,15 @@ def main():
     g.add_argument('--solgur', type=FileType('r'), help='Gurobi solution file with a single solution.')
     parser.add_argument('--runs', type=FileType('w'), help='Write runs of indels to the specified file. Format: Each line represents a cycle, each consecutive sequence of oriented markers is a run. Runs in the same cycle are separated by tab characters an begin with an A-run or a tab character if no A-run exists.')
     parser.add_argument('--numindels', action='store_true', help='Give a possible number of indels in the sorting scenario. Note that this number is NOT the same for all optimal scenarios.')
+    parser.add_argument('--checknumindels',action='store_true',help='(Developer only) Check whether the maximum/minimum numbers of indels calculated in the secondary objective match the graph calculated as a matching.')
     args = parser.parse_args()
     obj, vrs = read_gurobi(args.solgur)
     genomes = read_genomes(args)
     print('d(%s,%s) = %i'%(genomes[0][0], genomes[1][0], obj))
     rd, _ , _, _, extr_genomes = full_relational_diagram(genomes, LOG)
     set_edges(rd, vrs)
+    if args.checknumindels:
+        check_num_indels(vrs,rd)
     if args.runs or args.numindels:
         runs = get_runs(rd)
         if args.numindels:

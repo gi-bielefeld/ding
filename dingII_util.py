@@ -29,9 +29,9 @@ def read_genomes(args):
 
 TELOGENE = ''
 
-def raw_extremities(chrm, idgen):
+def raw_extremities(chrm, idgen, capping=True):
     exts = []
-    if chrm[0] == CHR_LINEAR:
+    if chrm[0] == CHR_LINEAR and capping:
         t1id = idgen.get_new()
         exts.append((t1id, TELOGENE , TELO))
     for o,g in chrm[1]:
@@ -39,7 +39,7 @@ def raw_extremities(chrm, idgen):
         if o == ORIENT_NEGATIVE:
             xs = xs[::-1]
         exts.extend(xs)
-    if chrm[0] == CHR_LINEAR:
+    if chrm[0] == CHR_LINEAR and capping:
         t2id = idgen.get_new()
         exts.append((t2id, TELOGENE, TELO))
     return exts
@@ -52,7 +52,7 @@ EXTREMITYEDGE = 'ext'
 GENOME1 = '1'
 GENOME2 = '2'
 
-def genome_graph(gnm, idgen, name='A', pad = 0, return_circulars=True):
+def genome_graph(gnm, idgen, name='A', pad = 0, return_circulars=True, capping = True):
     gg = nx.MultiGraph()
     #for each gene store all adjacencies of all occurrences
     gene_index = {}
@@ -62,12 +62,14 @@ def genome_graph(gnm, idgen, name='A', pad = 0, return_circulars=True):
     circs = []
     extremity_genome = []
     for chrm in gnm[1]:
-        exts = raw_extremities(chrm, idgen)
+        exts = raw_extremities(chrm, idgen,capping=capping)
         extremity_genome.append(exts)
         #store self edges for circular chromosomes
         selfs = []
-        for eid, g, xt in exts:
-            gg.add_node(eid, genome=name, gene=g, extremity=xt)
+        for i,k in enumerate(exts):
+            eid, g, xt = k
+            telomere = chrm[0] == CHR_LINEAR and (i == 0 or i == len(exts) -1 )
+            gg.add_node(eid, genome=name, gene=g, extremity=xt,telomere=telomere)
             insertl(gene_index[xt], g, eid)
         #whether the first edge is a self edge
         if chrm[0] == CHR_CIRCULAR:
@@ -75,7 +77,10 @@ def genome_graph(gnm, idgen, name='A', pad = 0, return_circulars=True):
         else:
             laste = exts[0][0]
             exts = exts[1:]
-        selfedge = False
+        if capping or chrm[0] == CHR_CIRCULAR:
+            selfedge = False
+        else:
+            selfedge = True
         for thise, _,_ in exts:
             if selfedge:
                 gg.add_edge(laste, thise, etype=SELFEDGE)
@@ -109,21 +114,22 @@ def relational_diagram(gg1, gg2, gi1, gi2):
                     rd.add_edge(id1,id2, etype=EXTREMITYEDGE)
     return rd
     
-def full_relational_diagram(genomes, LOG):
+def full_relational_diagram(genomes, LOG, capping=True):
     gen = Simple_Id_Generator()
     lchrs1 = len([c[0] for c in genomes[0][1] if c[0] == CHR_LINEAR])
     lchrs2 = len([c[0] for c in genomes[1][1] if c[0] == CHR_LINEAR])
     diff = lchrs1 - lchrs2
     pad1 = 0
     pad2 = 0
-    if diff > 0:
-        pad2 = diff
-        LOG.info('Padding genome %s with %i empty chromosomes.'%(genomes[1][0], pad2))
-    if diff < 0:
-        pad1 = -diff
-        LOG.info('Padding genome %s with %i empty chromosomes.'%(genomes[0][0], pad1))
-    gg1, gi1, circs, eg1 = genome_graph(genomes[0], gen, name=GENOME1, pad=pad1)
-    gg2, gi2, circs2, eg2 = genome_graph(genomes[1], gen, name=GENOME2, pad=pad2)
+    if capping:
+        if diff > 0:
+            pad2 = diff
+            LOG.debug('Padding genome %s with %i empty chromosomes.'%(genomes[1][0], pad2))
+        if diff < 0:
+            pad1 = -diff
+            LOG.debug('Padding genome %s with %i empty chromosomes.'%(genomes[0][0], pad1))
+    gg1, gi1, circs, eg1 = genome_graph(genomes[0], gen, name=GENOME1, pad=pad1,capping=capping)
+    gg2, gi2, circs2, eg2 = genome_graph(genomes[1], gen, name=GENOME2, pad=pad2,capping=capping)
     circs.extend(circs2)
     rd = relational_diagram(gg1, gg2, gi1, gi2)
     return rd, gi1, gi2, circs, [eg1, eg2]
@@ -134,6 +140,11 @@ def add_unimog_parsing_groups(parser):
     pairs.add_argument('-p', '--pair', type=str, nargs=2, help='Give the two names of the genomes you want to compare, as specified in the unimog header.')
     pairs.add_argument('-pn', '--pairnumber', type=int, nargs=2, help='Chose the two genomes via their position in the file (starting at 0). Default: 0,1')
 
+def is_standard_var(s):
+    if len(s) <= 1:
+        return False
+    return s[1]=='_'
+    
 def read_gurobi(fil):
     ''' Read a gurobi solution file and return maxfvalue, {variableclass : {vid:value}}
     '''
@@ -146,9 +157,12 @@ def read_gurobi(fil):
                 obj = int(float(s[1].strip()))
             continue
         s = line.split(' ')
-        vname = s[0][0]
-        vid = s[0][2:]
-        if vname not in vrs:
-            vrs[vname] = {}
-        vrs[vname][vid] = int(round(float(s[1].strip())))
+        if is_standard_var(s[0]):
+            vname = s[0][0]
+            vid = s[0][2:]
+            if vname not in vrs:
+                vrs[vname] = {}
+            vrs[vname][vid] = int(round(float(s[1].strip())))
+        else:
+            vrs[s[0]] = int(round(float(s[1].strip())))
     return obj, vrs
