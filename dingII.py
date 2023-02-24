@@ -191,7 +191,7 @@ def maybe_adjacent_selfedge(rd, u):
 def maybe_adjacent_selfedge_raw(rd,u):
     return [(u,v,k) for v, edges in rd[u].items() for k, data in edges.items() if data['etype']==SELFEDGE]
 
-def edge_constraints(rd, ilp):
+def edge_constraints(rd, ilp,max_indels=False):
     '''
     Add constraints C01, 04, 05, 07, 08, 09, 10 by iterating through edges once.
     '''
@@ -207,8 +207,11 @@ def edge_constraints(rd, ilp):
         if etype == SELFEDGE:
             #c05
             for i in [u,v]:
-                cs = 'y_%i + %i x_%s <= %i'%(i,i,e,i)
-                add_constraint(ilp, 'c05', cs)
+                if not max_indels:
+                    cs = 'y_%i + %i x_%s <= %i'%(i,i,e,i)
+                    add_constraint(ilp, 'c05', cs)
+                else:
+                    cs = 'x_%s - d_%i <= 0'%(e,i)
             #c07
             if rd.nodes[u]['genome'] == GENOME1:
                 #if (u,v) is selfedge genome is the same for u,v
@@ -220,7 +223,7 @@ def edge_constraints(rd, ilp):
                 for v_ in [u,v]:
                     cs = 'r_%i - x_%s >= 0'%(v_,e)
                     add_constraint(ilp, 'c07', cs)
-        else:
+        if etype != SELFEDGE or max_indels:
             #c04 DONE: this is only relevant for non-self edges
             for i,j in [(u,v), (v,u)]:
                 cs = 'y_%i - y_%i + %i x_%s <= %i'%(i,j,i,e, i)
@@ -287,20 +290,112 @@ def singleton_constraints(circs, ilp):
         insertl(ilp, 'obj', (1, 's_%i'%i))
         insertl(ilp, 'binary', 's_%i'%i)
 
+def maximize_indels_constraints(rd,ilp):
+    for u,v, k, data in rd.edges(data=True, keys=True):
+        e = canon_disp_tup((u,v,k))
+        etype= data['etype']
+        for i,j in [(u,v),(v,u)]:
+            cns = 'd_%i - d_%i + x_%s <= 1'%(i,j,e)
+            add_constraint(ilp,'c13id',cns)
+        if etype==SELFEDGE:
+            for i in [u,v]:
+                cns = 'x_%s - d_%i <= 0'%(e,i)
+                add_constraint(ilp,'c05id',cns)
+    for v in rd.nodes():
+        insertl(ilp,'binary','d_%i'%v)
+        insertl(ilp,'binary','p_%i'%v)
+        add_constraint(ilp,'c15id','z_%i + d_%i - p_%i <= 1'%(v,v,v))
+        insertl(ilp,'obj',(1,'p_%i'%v))
+    num_nodes = len(list(rd.nodes()))
+    insertl(ilp,'general',('max_indels',0,num_nodes))
+    tsum = ' - '.join(['0.5 t_%s'%canon_disp_tup((u,v,k)) for u,v,k,data in rd.edges(data=True,keys=True)])
+    psum = ' - '.join(['p_%i'%v for v in rd.nodes()])
+    add_constraint(ilp, 'c17id','max_indels - %s - %s = 0'%(tsum,psum))
+    ilp['obj1'] = [(-1,'max_indels')]
+
+def maximize_dcj_constraints(rd,ilp):
+    num_nodes = len(list(rd.nodes()))
+    for v in rd.nodes():
+        insertl(ilp,'binary','w_%i'%v)
+        insertl(ilp,'binary','d_%i'%v)
+        #insertl(ilp,'general', ('a_%i'%v,0,num_nodes+1))
+        #insertl(ilp,'general', ('b_%i'%v,0,num_nodes+1))
+        cns = 'a_%i - b_%i - %i w_%i - %i d_%i - %i y_%i <= -1'%(v,v,num_nodes,v, num_nodes,v,num_nodes,v)
+        add_constraint(ilp,'c13dcj',cns)
+        cns = 'b_%i - a_%i - %i w_%i + %i d_%i - %i y_%i <= %i'%(v,v,num_nodes,v, num_nodes,v,num_nodes,v,num_nodes -1)
+        add_constraint(ilp,'c13dcj',cns)
+    for u,v, k, data in rd.edges(data=True, keys=True):
+        e = canon_disp_tup((u,v,k))
+        etype= data['etype']
+        if etype==ADJACENCY:
+            if rd.nodes[u]['genome'] == GENOME1:
+                for i,j in [(u,v),(v,u)]:
+                    cns = 'a_%i - a_%i - %i t_%s <= 0'%(i,j,num_nodes,e)
+                    add_constraint(ilp,'c14dcj',cns)
+            else:
+                cns = 'a_%i - a_%i = 0'%(u,v)
+                add_constraint(ilp,'c14dcj',cns)
+        else:
+            for i,j in [(u,v),(v,u)]:
+                cns = 'b_%i - b_%i + %i x_%s <= %i'%(i,j,num_nodes,e,num_nodes)
+                add_constraint(ilp,'c15dcj',cns)
+        cns = 'd_%i + d_%i + x_%s <= 2'%(u,v,e)
+        add_constraint(ilp,'c16dcj',cns)
+        cns = 'd_%i + d_%i - x_%s >= 0'%(u,v,e)
+        add_constraint(ilp,'c16dcj',cns)
+    insertl(ilp,'binary','n')
+    insertl(ilp,'general',('min_indels',0,num_nodes))
+    tsum = ' - '.join(['t_%s'%canon_disp_tup((u,v,k)) for u,v,k,data in rd.edges(data=True,keys=True)])
+    cns = '%i n - %s >= 0'%(num_nodes,tsum)
+    add_constraint(ilp,'c17dcj',cns)
+    wsum = ' - '.join(['w_%i'%u for u in rd.nodes()])
+    cns = 'min_indels - %s - 2 n = 0'%wsum
+    add_constraint(ilp,'c18dcj',cns)
+    ilp['obj1']=[(1,'min_indels')]
+
 
 def print_constraints(ilp, ctype, file=sys.stdout):
     for num, cs in getl(ilp, ctype):
         print(' %s.%i: %s'%(ctype,num, cs),file=file)
 
-def print_all_constraints(ilp, file=sys.stdout):
+def print_all_constraints(ilp, file=sys.stdout,max_indels=False,max_rearrangements=False):
     for ctype in ['c%02d'%i for i in range(1,13)]:
         print_constraints(ilp, ctype, file=file)
+    if max_indels:
+        for ctype in ['c05id','c13id','c15id','c17id']:
+            print_constraints(ilp,ctype,file=file)
+    if max_rearrangements:
+        for ctype in ['c13dcj','c14dcj','c15dcj','c16dcj','c17dcj','c18dcj']:
+            print_constraints(ilp,ctype,file=file)
 
 def print_objective(ilp, file=sys.stdout):
-    obj_str = ' + '.join(['%f %s'%(k, var) for (k, var) in ilp['obj'] if k > 0])
-    obj_str+=' - '
-    obj_str+=' - '.join(['%f %s'%(-k, var) for (k, var) in ilp['obj'] if k < 0])
+    print('Minimize ',file=file)
+    obj_strpos = ' + '.join(['%f %s'%(k, var) for (k, var) in ilp['obj'] if k > 0])
+    obj_strneg =' - '.join(['%f %s'%(-k, var) for (k, var) in ilp['obj'] if k < 0])
+    if obj_strneg == '':
+        obj_str=obj_strpos
+    else:
+        obj_str = ' - '.join([obj_strpos,obj_strneg])
     print(' obj: %s'%obj_str, file=file)
+
+def print_with_secondary_objective(ilp,file=sys.stdout):
+    print('Minimize multi-objectives',file=file)
+    obj_strpos = ' + '.join(['%f %s'%(k, var) for (k, var) in ilp['obj'] if k > 0])
+    obj_strneg=' - '.join(['%f %s'%(-k, var) for (k, var) in ilp['obj'] if k < 0])
+    if obj_strneg == '':
+        obj_str=obj_strpos
+    else:
+        obj_str = ' - '.join([obj_strpos,obj_strneg])
+    obj_strbpos = ' + '.join(['%f %s'%(k, var) for (k, var) in ilp['obj1'] if k > 0])
+    obj_strbneg =' - '.join(['%f %s'%(-k, var) for (k, var) in ilp['obj1'] if k < 0])
+    if obj_strbneg == '':
+        obj_strb=obj_strbpos
+    else:
+        obj_strb = ' - '.join([obj_strbpos,obj_strbneg])
+    print(' obj0: Priority=2 Weight=1 AbsTol=0 RelTol=0',file=file)
+    print('  '+obj_str,file=file)
+    print(' obj1: Priority=1 Weight=1 AbsTol=0 RelTol=0',file=file)
+    print('  '+obj_strb,file=file)
 
 def print_domains(ilp, file=sys.stdout):
     for var, lower, upper in ilp['general']:
@@ -314,11 +409,13 @@ def print_binaries(ilp, file=sys.stdout):
     for var in ilp['binary']:
         print(' %s'%var, file=file)
 
-def print_ilp(ilp, file=sys.stdout):
-    print('Minimize', file=file)
-    print_objective(ilp, file=file)
+def print_ilp(ilp, file=sys.stdout,max_indels=False,max_rearrangements=False):
+    if not (max_indels or max_rearrangements):
+        print_objective(ilp, file=file)
+    else:
+        print_with_secondary_objective(ilp,file=file)
     print('Subject To', file=file)
-    print_all_constraints(ilp, file=file)
+    print_all_constraints(ilp, file=file,max_indels=max_indels,max_rearrangements=max_rearrangements)
     print('Bounds', file=file)
     print_domains(ilp, file=file)
     print('General', file=file)
@@ -340,6 +437,9 @@ def main():
     writewhat = parser.add_mutually_exclusive_group(required=True)
     writewhat.add_argument('--writemodel', type=FileType('w'), help='Write the matching model to a file in order to customize it.')
     writewhat.add_argument('--writeilp', type=FileType('w'), help='Write the resulting ILP to the specified file.')
+    maximizewhat = parser.add_mutually_exclusive_group()
+    maximizewhat.add_argument('--maximizeindels',action='store_true',help='**Warning: Highly experimental, do not use if you are not a ding dev - gurobi only** Under all co-optimal solutions prefer those that maximize the number of indel operations and minimize the number of DCJs.')
+    maximizewhat.add_argument('--maximizerearrangements',action='store_true',help='**Warning: Highly experimental, do not use if you are not a ding0 dev - gurobi only** Under all co-optimal solutions prefer those that minimize the number of indel operations and maximize the number of DCJs.')
     args = parser.parse_args()
     if args.range:
         if min(args.range) == 0.0:
@@ -357,11 +457,15 @@ def main():
         LOG.debug(c)
     sibs = siblings(rd, gi1, gi2)
     ilp = {}
-    edge_constraints(rd, ilp)
+    edge_constraints(rd, ilp,max_indels=args.maximizeindels)
     sibs_constraints(sibs, ilp, model)
     vertex_constraints(rd, ilp)
     singleton_constraints(circs, ilp)
-    print_ilp(ilp, file=args.writeilp)
+    if args.maximizeindels:
+        maximize_indels_constraints(rd,ilp)
+    if args.maximizerearrangements:
+        maximize_dcj_constraints(rd,ilp)
+    print_ilp(ilp, file=args.writeilp,max_indels=args.maximizeindels,max_rearrangements=args.maximizerearrangements)
     
 
 st = logging.StreamHandler(sys.stderr)
