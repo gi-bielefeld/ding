@@ -423,7 +423,8 @@ def print_ilp(ilp, file=sys.stdout,max_indels=False,max_rearrangements=False):
     print('Binary', file=file)
     print_binaries(ilp, file=file)
     print('End', file=file)
-    
+
+LOGLEVELS = {'debug':logging.DEBUG,'info':logging.INFO,'warning':logging.WARNING,'error':logging.ERROR,'critical':logging.CRITICAL}    
 
 def main():
     parser = ArgumentParser()
@@ -437,10 +438,18 @@ def main():
     writewhat = parser.add_mutually_exclusive_group(required=True)
     writewhat.add_argument('--writemodel', type=FileType('w'), help='Write the matching model to a file in order to customize it.')
     writewhat.add_argument('--writeilp', type=FileType('w'), help='Write the resulting ILP to the specified file.')
+    writewhat.add_argument('--toheuristicsol',type=FileType('w'), help='Convert a user specified matching to a heuristic starting solution.')
+    parser.add_argument('--heuristicmatching',type=FileType('r'), help='User specified matching to convert to heuristic solution. Only to be used with --heuristicsol.')
     maximizewhat = parser.add_mutually_exclusive_group()
     maximizewhat.add_argument('--maximizeindels',action='store_true',help='**Warning: Highly experimental, do not use if you are not a ding dev - gurobi only** Under all co-optimal solutions prefer those that maximize the number of indel operations and minimize the number of DCJs.')
     maximizewhat.add_argument('--maximizerearrangements',action='store_true',help='**Warning: Highly experimental, do not use if you are not a ding0 dev - gurobi only** Under all co-optimal solutions prefer those that minimize the number of indel operations and maximize the number of DCJs.')
+    parser.add_argument('--log-level',choices=LOGLEVELS.keys(),default='warning')
     args = parser.parse_args()
+    st = logging.StreamHandler(sys.stderr)
+    LOG.setLevel(LOGLEVELS[args.log_level])
+    st.setLevel(LOGLEVELS[args.log_level])
+    st.setFormatter(logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s'))
+    LOG.addHandler(st)
     if args.range:
         if min(args.range) == 0.0:
             LOG.warning('Lowest percentile to be matched is 0. If this is not counteracted by deletion penalties, almost only whole chromosome deletions will be modeled!')
@@ -467,14 +476,10 @@ def main():
         maximize_dcj_constraints(rd,ilp)
     print_ilp(ilp, file=args.writeilp,max_indels=args.maximizeindels,max_rearrangements=args.maximizerearrangements)
     
-
-st = logging.StreamHandler(sys.stderr)
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 
-st.setLevel(logging.DEBUG)
-st.setFormatter(logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s'))
-LOG.addHandler(st)
+
+
 
 
 main()
