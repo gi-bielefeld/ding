@@ -237,8 +237,10 @@ def edge_constraints(rd, ilp,max_indels=False):
             d1 = maybe_adjacent_selfedge(rd, u)
             d2 = maybe_adjacent_selfedge(rd, v)
             d1.extend(d2)
-            cs = ' + '.join(['x_%s'%d for d in d1 ]) + ' - t_%s >= 0'%(e)
-            add_constraint(ilp, 'c09', cs)
+            d1 = list(set(d1))
+            if len(d1) > 0:
+                cs = ' + '.join(['x_%s'%d for d in d1 ]) + ' - t_%s >= 0'%(e)
+                add_constraint(ilp, 'c09', cs)
         else:
             #c10
             cs = 't_%s = 0'%e
