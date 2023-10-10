@@ -3,6 +3,7 @@ import logging
 import dingII.dingII_generate as dingII_generate
 import sys
 import dingII.dingII_parsesol as dingII_parsesol
+from dingII import __version__
 
 
 def matching_range(v):
@@ -78,6 +79,8 @@ def main():
     parser = ArgumentParser(description='ding II - an algorithm solving the genomic distance problem for '
                                                  'natural genomes, in which any marker may occur an arbitrary number'
                                                  ' of times')
+
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     # Create subparsers
     subparsers = parser.add_subparsers(dest='subcommand', help='Available subcommands')
