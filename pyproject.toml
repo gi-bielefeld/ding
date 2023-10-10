@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial"
 repository = "https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial"
 packages = [{include = "dingII"}]
-keywords = []
+keywords = ["Comparative genomics", "Genome rearrangement", "DCJ-indel distance"]
 
 [tool.poetry.scripts]
 dingII = 'dingII.__main__:main'
