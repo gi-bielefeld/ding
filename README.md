@@ -2,12 +2,12 @@
 
 This is just a wrapper on [dingII] to make it easier to `pip`- and `conda`- install. All rights belong to the [dingII] developers.
 
-Installation:
+## Installation
 ```bash
 pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
-Usage:
+## Usage
 ```
 $ dingII -h
 
@@ -25,7 +25,7 @@ options:
   -V, --version        show program's version number and exit
 ```
 
-## Generate subcommand
+### Generate subcommand
 ```
 $ dingII generate -h
 usage: dingII generate [-h] [-mm | -em | -im | -r RANGE RANGE] [-c CUSTOM] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] (--writemodel WRITEMODEL | --writeilp WRITEILP) unimog
@@ -51,7 +51,7 @@ options:
   --writeilp WRITEILP   Write the resulting ILP to the specified file.
 ```
 
-## parsesol subcommand
+### parsesol subcommand
 ```
 $ dingII parsesol -h
 usage: dingII parsesol [-h] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] [-m MATCHING] --solgur SOLGUR [--runs RUNS] [--numindels] unimog
