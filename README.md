@@ -1,8 +1,14 @@
 # dingiiofficial_wrapper
 
-This is just a wrapper on [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) to make it easier to `pip`- and
-`conda`- install. All rights belong to the [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) developers.
-Original [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) README follows.
+This is just a wrapper on [dingII] to make it easier to `pip`- and `conda`- install. All rights belong to the [dingII] developers.
+
+Installation:
+```bash
+pip install git+https://github.com/leoisl/dingiiofficial_wrapper
+```
+
+
+Original [dingII] README follows.
 
 # dingIIofficial
 
@@ -62,3 +68,6 @@ The work of this repository is described in the following paper:
 
 For a more detailed description see the following arxiv preprint:
 *  Bohnenkämper, L., Braga, M.D.V., Doerr, D., Stoye, J.: Computing the rearrangement distance of natural genomes. [arXiv:2001.02139](http://arxiv.org/abs/2001.02139) (2020)
+
+
+[dingII]: https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial
