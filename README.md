@@ -8,7 +8,7 @@ pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
 Usage:
-```bash
+```
 $ dingII -h
 
 usage: dingII [-h] [-V] {generate,parsesol} ...
@@ -26,7 +26,7 @@ options:
 ```
 
 ## Generate subcommand
-```bash
+```
 $ dingII generate -h
 usage: dingII generate [-h] [-mm | -em | -im | -r RANGE RANGE] [-c CUSTOM] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] (--writemodel WRITEMODEL | --writeilp WRITEILP) unimog
 
@@ -52,7 +52,7 @@ options:
 ```
 
 ## parsesol subcommand
-```bash
+```
 $ dingII parsesol -h
 usage: dingII parsesol [-h] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] [-m MATCHING] --solgur SOLGUR [--runs RUNS] [--numindels] unimog
 
