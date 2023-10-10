@@ -1,3 +1,9 @@
+# dingiiofficial_wrapper
+
+This is just a wrapper on [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) to make it easier to `pip`- and
+`conda`- install. All rights belong to the [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) developers.
+Original [dingII](https://gitlab.ub.uni-bielefeld.de/gi/dingiiofficial) README follows.
+
 # dingIIofficial
 
 The python 3 Version of DING. This is the version where new features will still be added and refined. As of now, this version is still to be regarded as experimental as it has not been tested thoroughly. Feel free to report any bugs or ideas for new features!
