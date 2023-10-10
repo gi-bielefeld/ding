@@ -7,6 +7,72 @@ Installation:
 pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
+Usage:
+```bash
+$ dingII -h
+
+usage: dingII [-h] [-V] {generate,parsesol} ...
+
+ding II - an algorithm solving the genomic distance problem for natural genomes, in which any marker may occur an arbitrary number of times
+
+positional arguments:
+  {generate,parsesol}  Available subcommands
+    generate           Generate the DING ILP or create a custom model file in order to fine tune how many genes per family are to be matched
+    parsesol           Parse a gurobi solution into a distance and optionally give a matching
+
+options:
+  -h, --help           show this help message and exit
+  -V, --version        show program's version number and exit
+```
+
+## Generate subcommand
+```bash
+$ dingII generate -h
+usage: dingII generate [-h] [-mm | -em | -im | -r RANGE RANGE] [-c CUSTOM] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] (--writemodel WRITEMODEL | --writeilp WRITEILP) unimog
+
+positional arguments:
+  unimog                The genomes provided in UniMOG format.
+
+options:
+  -h, --help            show this help message and exit
+  -mm, --maximal        Set matching model to maximal matching.
+  -em, --exemplary      Set matching model to exemplary matching.
+  -im, --intermediate   Set matching model to intermediate matching.
+  -r RANGE RANGE, --range RANGE RANGE
+                        Provide upper and lower percentiles to be matched per marker in range [0,1]. Actual discrete bounds will always be rounded up.
+  -c CUSTOM, --custom CUSTOM
+                        Provide a custom matching file.
+  -p PAIR PAIR, --pair PAIR PAIR
+                        Give the two names of the genomes you want to compare, as specified in the unimog header.
+  -pn PAIRNUMBER PAIRNUMBER, --pairnumber PAIRNUMBER PAIRNUMBER
+                        Chose the two genomes via their position in the file (starting at 0). Default: 0,1
+  --writemodel WRITEMODEL
+                        Write the matching model to a file in order to customize it.
+  --writeilp WRITEILP   Write the resulting ILP to the specified file.
+```
+
+## parsesol subcommand
+```bash
+$ dingII parsesol -h
+usage: dingII parsesol [-h] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] [-m MATCHING] --solgur SOLGUR [--runs RUNS] [--numindels] unimog
+
+positional arguments:
+  unimog                The genomes provided in UniMOG format.
+
+options:
+  -h, --help            show this help message and exit
+  -p PAIR PAIR, --pair PAIR PAIR
+                        Give the two names of the genomes you want to compare, as specified in the unimog header.
+  -pn PAIRNUMBER PAIRNUMBER, --pairnumber PAIRNUMBER PAIRNUMBER
+                        Chose the two genomes via their position in the file (starting at 0). Default: 0,1
+  -m MATCHING, --matching MATCHING
+                        Give the matching as a pair of indexed genomes.
+  --solgur SOLGUR       Gurobi solution file with a single solution.
+  --runs RUNS           Write runs of indels to the specified file. Format: Each line represents a cycle, each consecutive sequence of oriented markers is a run. Runs in the same cycle are separated by tab characters an begin
+                        with an A-run or a tab character if no A-run exists.
+  --numindels           Give a possible number of indels in the sorting scenario. Note that this number is NOT the same for all optimal scenarios.
+```
+
 
 Original [dingII] README follows.
 
