@@ -1,6 +1,5 @@
-from ilp_util_adj import *
+from dingII.ilp_util_adj import *
 import networkx as nx
-from argparse import ArgumentParser, FileType
 
 HEAD = 'h'
 TAIL = 't'
@@ -127,12 +126,6 @@ def full_relational_diagram(genomes, LOG):
     circs.extend(circs2)
     rd = relational_diagram(gg1, gg2, gi1, gi2)
     return rd, gi1, gi2, circs, [eg1, eg2]
-
-def add_unimog_parsing_groups(parser):
-    parser.add_argument('unimog', type=FileType('r'), help='The genomes provided in UniMOG format.')
-    pairs = parser.add_mutually_exclusive_group()
-    pairs.add_argument('-p', '--pair', type=str, nargs=2, help='Give the two names of the genomes you want to compare, as specified in the unimog header.')
-    pairs.add_argument('-pn', '--pairnumber', type=int, nargs=2, help='Chose the two genomes via their position in the file (starting at 0). Default: 0,1')
 
 def read_gurobi(fil):
     ''' Read a gurobi solution file and return maxfvalue, {variableclass : {vid:value}}

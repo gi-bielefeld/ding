@@ -1,17 +1,7 @@
-#!/usr/bin/python3
-from argparse import ArgumentParser, FileType, ArgumentTypeError
-import logging
-from ilp_util_adj import *
-import networkx as nx
 import math
 import sys
-from dingII_util import *
-
-def matching_range(v):
-    iv = float(v)
-    if iv < 0.0 or iv > 1.0:
-        raise ArgumentTypeError("%s is an invalid range bound. Please only provide values in [0,1]." % v)
-    return iv
+from dingII.dingII_util import *
+import logging
 
 def mm_bound(a,b):
     m = min(a,b)
@@ -54,7 +44,7 @@ def create_matching_model(args, gnms):
         enforce_model_integrity(model, amults, bmults)
         needs_supplement = False
         if is_incomplete(model, amults, bmults):
-            LOG.warning('The matching model provided via custom file is incomplete. It will be supplemented by your chosen model.')
+            logging.warning('The matching model provided via custom file is incomplete. It will be supplemented by your chosen model.')
             needs_supplement = True
     if needs_supplement:    
         if args.exemplary:
@@ -69,7 +59,7 @@ def create_matching_model(args, gnms):
             boundf = rb.r_bound
         else:
             if not args.maximal:
-                LOG.info('No matching model chosen. Default is maximal matching.')
+                logging.info('No matching model chosen. Default is maximal matching.')
             boundf = mm_bound
         model2 = create_model(amults, bmults, boundf)
         #supplement model so far
@@ -111,22 +101,22 @@ def enforce_model_integrity(model, amults, bmults):
         l, u = bnds
         m = min(dgetc(amults, gene),dgetc(bmults, gene))
         if l < 0:
-            LOG.warning('Inconsistend bound %i will be reset to 0.'%l)
+            logging.warning('Inconsistend bound %i will be reset to 0.'%l)
             l= 0
         if u < 0:
-            LOG.warning('Inconsistend bound %i will be reset to 0.'%l)
+            logging.warning('Inconsistend bound %i will be reset to 0.'%l)
             l= 0
         if l > u:
-            LOG.warning('Inconsistent bounds: upper below lower (lower %i, upper %i) for gene %s. Both bounds will be set to %i.'%(l,u,gene, u))
+            logging.warning('Inconsistent bounds: upper below lower (lower %i, upper %i) for gene %s. Both bounds will be set to %i.'%(l,u,gene, u))
             l = u
         if l > m:
-            LOG.warning('Too high bound %i for gene %s (smallest family has only %i occurrences) will be trimmed to %i.'%(l,gene,m,m))
+            logging.warning('Too high bound %i for gene %s (smallest family has only %i occurrences) will be trimmed to %i.'%(l,gene,m,m))
             l = m
         if u > m:
-            LOG.warning('Too high bound %i for gene %s (smallest family has only %i occurrences) will be trimmed to %i.'%(u,gene,m,m))
+            logging.warning('Too high bound %i for gene %s (smallest family has only %i occurrences) will be trimmed to %i.'%(u,gene,m,m))
             u = m
         if l == 0 and m > 0:
-            LOG.info('Lower bound found for gene %s is 0. If this affects many genes and is not counteracted by deletion penalties this may lead to very large indel stretches.'%gene)
+            logging.info('Lower bound found for gene %s is 0. If this affects many genes and is not counteracted by deletion penalties this may lead to very large indel stretches.'%gene)
         model[gene] = (l,u)
 
 def is_incomplete(model, amults, bmults):
@@ -328,35 +318,23 @@ def print_ilp(ilp, file=sys.stdout):
     print('Binary', file=file)
     print_binaries(ilp, file=file)
     print('End', file=file)
-    
 
-def main():
-    parser = ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-mm','--maximal', action='store_true', help='Set matching model to maximal matching.')
-    group.add_argument('-em','--exemplary', action='store_true', help='Set matching model to exemplary matching.')
-    group.add_argument('-im','--intermediate', action='store_true', help='Set matching model to intermediate matching.')
-    group.add_argument('-r', '--range', type=matching_range, nargs=2, help='Provide upper and lower percentiles to be matched per marker in range [0,1]. Actual discrete bounds will always be rounded up.')
-    parser.add_argument('-c','--custom', type=FileType('r'), action='store', help='Provide a custom matching file.')
-    add_unimog_parsing_groups(parser)
-    writewhat = parser.add_mutually_exclusive_group(required=True)
-    writewhat.add_argument('--writemodel', type=FileType('w'), help='Write the matching model to a file in order to customize it.')
-    writewhat.add_argument('--writeilp', type=FileType('w'), help='Write the resulting ILP to the specified file.')
-    args = parser.parse_args()
+
+def main(args):
     if args.range:
         if min(args.range) == 0.0:
-            LOG.warning('Lowest percentile to be matched is 0. If this is not counteracted by deletion penalties, almost only whole chromosome deletions will be modeled!')
+            logging.warning('Lowest percentile to be matched is 0. If this is not counteracted by deletion penalties, almost only whole chromosome deletions will be modeled!')
     genomes = read_genomes(args)
     model = create_matching_model(args, genomes)
     if args.writemodel:
         write_matching_model(model, args.writemodel)
         sys.exit(0)
-    rd, gi1, gi2, circs, exts = full_relational_diagram(genomes, LOG)
-    LOG.debug('Graph:')
+    rd, gi1, gi2, circs, exts = full_relational_diagram(genomes, logging)
+    logging.debug('Graph:')
     for c in rd.nodes(data=True):
-        LOG.debug(c)
+        logging.debug(c)
     for c in rd.edges(data=True):
-        LOG.debug(c)
+        logging.debug(c)
     sibs = siblings(rd, gi1, gi2)
     ilp = {}
     edge_constraints(rd, ilp)
@@ -364,17 +342,4 @@ def main():
     vertex_constraints(rd, ilp)
     singleton_constraints(circs, ilp)
     print_ilp(ilp, file=args.writeilp)
-    
-
-st = logging.StreamHandler(sys.stderr)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
-
-st.setLevel(logging.DEBUG)
-st.setFormatter(logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s'))
-LOG.addHandler(st)
-
-
-main()
-
 
