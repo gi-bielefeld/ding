@@ -1,9 +1,8 @@
-#!/usr/bin/python3
-from dingII_util import *
-from argparse import ArgumentParser, FileType
-from ilp_util_adj import *
+from dingII.dingII_util import *
+from dingII.ilp_util_adj import *
 import sys
 import logging
+
 
 def set_edges(rd, vrs):
     for eid, val in vrs['x'].items():
@@ -146,19 +145,12 @@ def print_runs(runs, file=sys.stdout):
         cyc = canonize(cyc)
         print('\t'.join([''.join(['%s%s'%kv for kv in r[1]]) for r in cyc]), file=file)
 
-def main():
-    parser = ArgumentParser('Parse a gurobi solution into a distance and optionally give a matching')
-    add_unimog_parsing_groups(parser)
-    parser.add_argument('-m','--matching', type=FileType('w'), help='Give the matching as a pair of indexed genomes.')
-    g = parser.add_mutually_exclusive_group(required=True)
-    g.add_argument('--solgur', type=FileType('r'), help='Gurobi solution file with a single solution.')
-    parser.add_argument('--runs', type=FileType('w'), help='Write runs of indels to the specified file. Format: Each line represents a cycle, each consecutive sequence of oriented markers is a run. Runs in the same cycle are separated by tab characters an begin with an A-run or a tab character if no A-run exists.')
-    parser.add_argument('--numindels', action='store_true', help='Give a possible number of indels in the sorting scenario. Note that this number is NOT the same for all optimal scenarios.')
-    args = parser.parse_args()
+
+def main(args):
     obj, vrs = read_gurobi(args.solgur)
     genomes = read_genomes(args)
     print('d(%s,%s) = %i'%(genomes[0][0], genomes[1][0], obj))
-    rd, _ , _, _, extr_genomes = full_relational_diagram(genomes, LOG)
+    rd, _ , _, _, extr_genomes = full_relational_diagram(genomes, logging)
     set_edges(rd, vrs)
     if args.runs or args.numindels:
         runs = get_runs(rd)
@@ -170,16 +162,3 @@ def main():
         m = get_matching(rd)
         matched_gnms = relabel(extr_genomes, [gnm[0] for gnm in genomes] , m)
         print_genomes(matched_gnms, file=args.matching)
-    
-    
-    
-
-
-st = logging.StreamHandler(sys.stderr)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
-
-st.setLevel(logging.DEBUG)
-st.setFormatter(logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s'))
-LOG.addHandler(st)
-main()
