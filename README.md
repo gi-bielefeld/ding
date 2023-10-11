@@ -7,6 +7,18 @@ This is just a wrapper on [dingII] to make it easier to `pip`- and `conda`- inst
 pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
+## Workflow
+
+1.  Generate the ILP: `dingII generate {unimog-file} -mm --writeilp {ilp-file}`
+2.  Use a solver to obtain a gurobi solution `{gurobi-sol}`
+3.  Get the matching and distance (and number of indels as well as a summary of runs ("indel-blocks")):
+`dingII parsesol {unimog-file} --solgur {gurobi-sol} --matching {unimog-matching} ` (`--numindels --runs {run-file}`)
+
+where ` {unimog-file}` is the original unmatched genome pair in UniMoG-Format and `{gurobi-sol}` the gurobi solution
+file with objective value (e.g. `# Objective value = 12`).
+
+
+
 ## Usage
 ```
 $ dingII -h
@@ -26,6 +38,9 @@ options:
 ```
 
 ### Generate subcommand
+
+This command corresponds to running the `dingII.py` script in the original [dingII] repository.
+
 ```
 $ dingII generate -h
 usage: dingII generate [-h] [-mm | -em | -im | -r RANGE RANGE] [-c CUSTOM] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] (--writemodel WRITEMODEL | --writeilp WRITEILP) unimog
@@ -52,6 +67,9 @@ options:
 ```
 
 ### parsesol subcommand
+
+This command corresponds to running the `dingII_parsesol.py` script in the original [dingII] repository.
+
 ```
 $ dingII parsesol -h
 usage: dingII parsesol [-h] [-p PAIR PAIR | -pn PAIRNUMBER PAIRNUMBER] [-m MATCHING] --solgur SOLGUR [--runs RUNS] [--numindels] unimog
