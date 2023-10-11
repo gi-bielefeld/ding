@@ -8,10 +8,11 @@ pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
 ### Installation TODO
-1. Make a release;
-2. Upload release to pypi;
-3. Make bioconda package;
-4. Add biocontainer link;
+1. Add License;
+2. Make a release;
+3. Upload release to pypi;
+4. Make bioconda package;
+5. Add biocontainer link;
 
 ## Workflow
 
