@@ -7,6 +7,12 @@ This is just a wrapper on [dingII] to make it easier to `pip`- and `conda`- inst
 pip install git+https://github.com/leoisl/dingiiofficial_wrapper
 ```
 
+### Installation TODO
+1. Make a release;
+2. Upload release to pypi;
+3. Make bioconda package;
+4. Add biocontainer link;
+
 ## Workflow
 
 1.  Generate the ILP: `dingII generate {unimog-file} -mm --writeilp {ilp-file}`
