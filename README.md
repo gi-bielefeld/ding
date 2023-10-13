@@ -4,7 +4,7 @@ This is just a wrapper on [dingII] to make it easier to `pip`- and `conda`- inst
 
 ## Installation
 ```bash
-pip install git+https://github.com/leoisl/dingiiofficial_wrapper
+pip install git+https://github.com/leoisl/dingiiofficial_wrapper@pypi_conda
 ```
 
 ### Installation TODO
